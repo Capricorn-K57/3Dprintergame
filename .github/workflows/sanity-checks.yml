@@ -1,0 +1,53 @@
+name: sanity-checks
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fail on merge-conflict markers
+        run: |
+          set -e
+          if grep -RIn '<<<<<<<\|=======\|>>>>>>>' -- . \
+            --exclude-dir=.git --exclude='*.png' --exclude='*.jpg'; then
+            echo "Conflict markers gevonden."
+            exit 1
+          fi
+          echo "Geen conflicts 🚀"
+
+      - name: Block Unity junk folders in repo
+        run: |
+          set -e
+          for d in Library Temp Obj Logs Build Builds; do
+            [ -d "$d" ] && { echo "$d/ hoort niet in git"; exit 1; }
+          done
+          echo "Repo is schoon ✅"
+
+      - name: Check .meta consistency (Assets)
+        run: |
+          set -e
+          bad=0
+          while IFS= read -r -d '' f; do
+            [ -f "${f}.meta" ] || { echo "Ontbreekt: ${f}.meta"; bad=1; }
+          done < <(find Assets -type f ! -name '*.meta' -print0)
+          while IFS= read -r -d '' m; do
+            base="${m%.meta}"
+            [ -e "$base" ] || { echo "Losse .meta: $m"; bad=1; }
+          done < <(find Assets -name '*.meta' -type f -print0)
+          [ $bad -eq 0 ] || exit 1
+          echo ".meta bestanden ok ✅"
+
+      - name: Warn on huge files (>50MB)
+        run: |
+          big=$(git ls-files | xargs -I{} du -m {} | awk '$1>50{print $2}')
+          if [ -n "$big" ]; then
+            echo "Grote files gevonden (overweeg Git LFS):"
+            echo "$big"
+            exit 1
+          fi
+          echo "Geen grote files ✅"
