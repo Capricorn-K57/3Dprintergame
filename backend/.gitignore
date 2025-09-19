@@ -1,0 +1,24 @@
+# Unity (frontend/)
+frontend/[Ll]ibrary/
+frontend/[Tt]emp/
+frontend/[Oo]bj/
+frontend/[Bb]uild*/
+frontend/[Ll]ogs/
+frontend/[Uu]serSettings/
+frontend/[Mm]emoryCaptures/
+frontend/*.sln
+frontend/*.csproj
+frontend/*.vsconfig
+
+# VS Code
+.vscode/
+
+# Node/Firebase (backend/)
+backend/node_modules/
+backend/.firebase/
+backend/firebase-debug.log
+backend/.env
+
+# OS
+.DS_Store
+Thumbs.db
